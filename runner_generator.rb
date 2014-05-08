@@ -83,27 +83,51 @@ def parse_command_line args
   end
   optp.parse!(args)
 
-  if args.size !=2 
+  if args.size <2 
     puts optp.help
     exit 1
   else
-    options['filename']=File.expand_path(args.shift)
+    options['filenames']=[]
+    while args.size!=1
+      options['filenames']<<File.expand_path(args.shift)
+    end
     options['output']=File.expand_path(args.shift)
   end
   return options
 end
 
+def parse_test_source filename
+  if File.exists?(filename)
+    source_raw=File.read(filename)
+    tests=find_tests(source_raw)
+    includes=find_includes(source_raw)
+    return tests,includes
+  else
+    puts "Cannot find test source #{filename}"
+    exit 1
+  end
+end
+
 if $0==__FILE__
   cli_options=parse_command_line(ARGV)
-  source_raw=File.read(cli_options['filename'])
-  tests=find_tests(source_raw)
-  includes=find_includes(source_raw)
+  tests=[]
+  includes=[]
+  cli_options['filenames'].each do |fname|
+    tsts,incs = *parse_test_source(fname)
+    tests+=tsts
+    includes+=incs
+  end
   includes.uniq!
   
   params={
     'tests'=>tests,
     'includes'=>includes
   }
+  if cli_options['filenames'].size>1
+    params['filename']="Various"
+  else
+    params['filename']=cli_options['filenames'].first
+  end
   params.merge!(cli_options)
   runner=generate_runner_source(params)  
   if Dir.exists?(File.dirname(params['output']))
