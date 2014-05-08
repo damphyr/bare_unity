@@ -19,6 +19,7 @@
 }
 
 //=======Automagically Detected Files To Include=====
+#include "unity.h"
 <% params['includes'].each do |inc| %>
 #include <%= inc %>
 <% end %>
@@ -42,9 +43,9 @@ void resetTest()
 //=======MAIN=====
 int main(void)
 {
-  Unity.TestFile = "<%=params['filename']%>";
   UnityBegin();
   <% params['tests'].each do |test| %> 
+  Unity.TestFile = "<%=test[:filename]%>";
   RUN_TEST( <%=test[:test]%>, <%=test[:line_number]%>);
   <% end %>
   return UnityEnd();

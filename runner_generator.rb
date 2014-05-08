@@ -100,6 +100,7 @@ def parse_test_source filename
   if File.exists?(filename)
     source_raw=File.read(filename)
     tests=find_tests(source_raw)
+    tests.each{|tst| tst[:filename]=filename}
     includes=find_includes(source_raw)
     return tests,includes
   else
@@ -117,17 +118,15 @@ if $0==__FILE__
     tests+=tsts
     includes+=incs
   end
-  includes.uniq!
   
+  includes.uniq!
+  includes.delete('"unity.h"')
+
   params={
     'tests'=>tests,
     'includes'=>includes
   }
-  if cli_options['filenames'].size>1
-    params['filename']="Various"
-  else
-    params['filename']=cli_options['filenames'].first
-  end
+  
   params.merge!(cli_options)
   runner=generate_runner_source(params)  
   if Dir.exists?(File.dirname(params['output']))
